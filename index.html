@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>House Classifier — Analyse IA de propriétés</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  :root {
+    --bg-dark: #07090e;
+    --bg-surface: rgba(18, 22, 30, 0.85);
+    --bg-surface-solid: #12161e;
+    --border-glow: rgba(201, 168, 76, 0.25);
+    --gold-primary: #d9b650;
+    --gold-glow: #f5e2a4;
+    --luxury: #d9b650;
+    --normal: #4fbfdf;
+    --old: #e06969;
+    --text-main: #f5f3ef;
+    --text-dim: #9ca3af;
+    --card-radius: 28px;
+    --blur-amount: 12px;
+  }
+
+  body {
+    background: var(--bg-dark);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* fond dynamique */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 20% 30%, rgba(217, 182, 80, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 70%, rgba(79, 191, 223, 0.06) 0%, transparent 55%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* grain subtil */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.2;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 860px;
+    width: 100%;
+    z-index: 2;
+    position: relative;
+  }
+
+  /* En-tête stylisé */
+  .hero {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .badge {
+    display: inline-block;
+    background: rgba(217, 182, 80, 0.12);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(217, 182, 80, 0.25);
+    border-radius: 100px;
+    padding: 0.3rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--gold-primary);
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 7vw, 4rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #ffffff 30%, var(--gold-glow) 80%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 1rem;
+  }
+
+  .subhead {
+    color: var(--text-dim);
+    font-size: 1rem;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+
+  /* Carte principale */
+  .glass-card {
+    background: var(--bg-surface);
+    backdrop-filter: blur(var(--blur-amount));
+    border-radius: var(--card-radius);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(217, 182, 80, 0.05) inset;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+  }
+
+  /* zone de dépôt */
+  .upload-area {
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.25rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: radial-gradient(ellipse at center, rgba(217,182,80,0.02) 0%, transparent 70%);
+  }
+
+  .upload-area:hover {
+    background: rgba(217, 182, 80, 0.03);
+    border-color: rgba(217, 182, 80, 0.3);
+  }
+
+  .upload-area.dragover {
+    background: rgba(217, 182, 80, 0.08);
+    border: 1px solid var(--gold-primary);
+    transform: scale(0.98);
+  }
+
+  .icon-circle {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(145deg, rgba(217,182,80,0.12), rgba(217,182,80,0.02));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(217,182,80,0.3);
+    transition: all 0.2s;
+  }
+
+  .upload-area:hover .icon-circle {
+    transform: translateY(-3px);
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 15px rgba(217,182,80,0.2);
+  }
+
+  .icon-circle svg {
+    width: 36px;
+    height: 36px;
+    stroke: var(--gold-primary);
+    stroke-width: 1.5;
+  }
+
+  .upload-title {
+    font-weight: 600;
+    font-size: 1.2rem;
+  }
+
+  .upload-hint {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .btn-primary {
+    background: linear-gradient(105deg, #d9b650 0%, #c2a044 100%);
+    border: none;
+    padding: 0.7rem 1.8rem;
+    border-radius: 60px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    font-family: 'Inter', sans-serif;
+    color: #0a0c12;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(105deg, #e6c56c, #d0ae4a);
+    box-shadow: 0 10px 20px -5px rgba(217,182,80,0.3);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    padding: 0.6rem 1.4rem;
+    border-radius: 60px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+    background: rgba(217,182,80,0.05);
+  }
+
+  /* loading state */
+  .loading-panel {
+    padding: 3rem 2rem;
+    text-align: center;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .loading-panel.visible {
+    display: flex;
+  }
+
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(217,182,80,0.2);
+    border-top-color: var(--gold-primary);
+    border-radius: 50%;
+    animation: spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* section résultat */
+  .result-section {
+    padding: 2rem;
+    display: none;
+  }
+
+  .result-section.visible {
+    display: block;
+    animation: fadeSlideUp 0.45s ease-out;
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.8rem;
+    align-items: start;
+  }
+
+  .image-preview {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: cover;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 12px 24px -12px rgba(0,0,0,0.5);
+    background: #0f1219;
+  }
+
+  .result-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+  }
+
+  .class-badge {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--gold-primary);
+    font-weight: 500;
+  }
+
+  .class-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  .class-value.Luxury { color: var(--luxury); text-shadow: 0 0 8px rgba(217,182,80,0.3); }
+  .class-value.Normal { color: var(--normal); }
+  .class-value.Old { color: var(--old); }
+
+  .confidence-meter {
+    background: rgba(255,255,255,0.05);
+    border-radius: 30px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .confidence-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 30px;
+    transition: width 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+  }
+  .confidence-fill.Luxury { background: linear-gradient(90deg, #d9b650, #f5e2a4); }
+  .confidence-fill.Normal { background: linear-gradient(90deg, #2d8dad, #4fbfdf); }
+  .confidence-fill.Old { background: linear-gradient(90deg, #bf4a4a, #e06969); }
+
+  .confidence-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 500;
+  }
+
+  /* barres détaillées */
+  .prob-bars {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .prob-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .prob-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+  }
+  .prob-name {
+    font-weight: 500;
+  }
+  .prob-percent {
+    color: var(--text-dim);
+  }
+  .bar-bg {
+    background: rgba(255,255,255,0.07);
+    border-radius: 20px;
+    height: 6px;
+    overflow: hidden;
+  }
+  .bar-progress {
+    width: 0%;
+    height: 100%;
+    border-radius: 20px;
+    transition: width 0.8s ease-out;
+  }
+  .bar-progress.Luxury { background: linear-gradient(90deg, #c9a03a, var(--gold-primary)); }
+  .bar-progress.Normal { background: linear-gradient(90deg, #2683a3, var(--normal)); }
+  .bar-progress.Old { background: linear-gradient(90deg, #bc3e3e, var(--old)); }
+
+  /* alert card */
+  .insight-card {
+    margin-top: 1.6rem;
+    padding: 1.2rem 1.4rem;
+    border-radius: 20px;
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(8px);
+    border-left: 4px solid;
+    transition: all 0.2s;
+  }
+  .insight-card.Luxury { border-left-color: var(--luxury); background: rgba(217,182,80,0.05); }
+  .insight-card.Normal { border-left-color: var(--normal); background: rgba(79,191,223,0.05); }
+  .insight-card.Old { border-left-color: var(--old); background: rgba(224,105,105,0.05); }
+  .insight-title { font-weight: 700; margin-bottom: 0.3rem; display: flex; gap: 0.4rem; align-items: center; }
+  .insight-text { font-size: 0.85rem; color: var(--text-dim); line-height: 1.4; }
+
+  .error-message {
+    margin: 1rem 1.5rem 1.5rem 1.5rem;
+    padding: 1rem;
+    background: rgba(224,105,105,0.1);
+    border-radius: 16px;
+    color: #e69090;
+    font-size: 0.85rem;
+    display: none;
+    border: 1px solid rgba(224,105,105,0.2);
+  }
+
+  .divider-light {
+    height: 1px;
+    background: rgba(255,255,255,0.05);
+    margin: 0;
+  }
+
+  footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    letter-spacing: 0.3px;
+  }
+
+  @media (max-width: 640px) {
+    .result-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .result-section { padding: 1.5rem; }
+    .upload-area { padding: 2rem 1rem; }
+    .class-value { font-size: 2rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="hero">
+    <div class="badge">✨ IA Vision · Propriété</div>
+    <h1>House Classifier</h1>
+    <p class="subhead">Analyse architecturale instantanée · identifiez le style et la valeur de tout bien immobilier</p>
+  </div>
+
+  <div class="glass-card" id="mainCard">
+    <!-- zone upload -->
+    <div id="uploadZone" class="upload-area">
+      <div class="icon-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+        </svg>
+      </div>
+      <p class="upload-title">Glissez ou déposez une photo</p>
+      <p class="upload-hint">JPG, JPEG, PNG · max. 10 Mo</p>
+      <button class="btn-primary" id="triggerUploadBtn">Parcourir</button>
+      <input type="file" id="fileInput" accept="image/jpg,image/jpeg,image/png" hidden>
+    </div>
+
+    <!-- loading -->
+    <div class="loading-panel" id="loadingState">
+      <div class="spinner"></div>
+      <p style="font-size: 0.9rem; color: var(--text-dim);">Analyse en profondeur par notre réseau neuronal...</p>
+    </div>
+
+    <div class="divider-light" id="divider" style="display:none;"></div>
+
+    <!-- résultats -->
+    <div class="result-section" id="resultSection">
+      <div class="result-grid">
+        <img id="previewImg" class="image-preview" alt="aperçu">
+        <div class="result-details">
+          <div>
+            <div class="class-badge">Catégorie prédite</div>
+            <div class="class-value" id="resultClass">—</div>
+          </div>
+          <div>
+            <div class="confidence-stats">
+              <span>Confiance</span>
+              <span id="confPct">0%</span>
+            </div>
+            <div class="confidence-meter">
+              <div class="confidence-fill" id="confBarFill"></div>
+            </div>
+          </div>
+          <div class="prob-bars" id="probBarsContainer"></div>
+          <button class="btn-secondary" id="resetBtn">⟳ Analyser une autre image</button>
+        </div>
+      </div>
+      <div class="insight-card" id="insightCard">
+        <div class="insight-title" id="insightTitle">✨</div>
+        <div class="insight-text" id="insightText"></div>
+      </div>
+    </div>
+
+    <div class="error-message" id="errorBox"></div>
+  </div>
+  <footer>Propulsé par FastAPI · TensorFlow · Classification résidentielle haute précision</footer>
+</div>
+
+<script>
+  const API_URL = 'http://127.0.0.1:8000/predict';
+
+  // DOM elements
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('fileInput');
+  const triggerBtn = document.getElementById('triggerUploadBtn');
+  const loadingState = document.getElementById('loadingState');
+  const resultSection = document.getElementById('resultSection');
+  const divider = document.getElementById('divider');
+  const errorBox = document.getElementById('errorBox');
+  const previewImg = document.getElementById('previewImg');
+  const resultClassSpan = document.getElementById('resultClass');
+  const confPctSpan = document.getElementById('confPct');
+  const confBarFill = document.getElementById('confBarFill');
+  const probContainer = document.getElementById('probBarsContainer');
+  const insightCard = document.getElementById('insightCard');
+  const insightTitle = document.getElementById('insightTitle');
+  const insightText = document.getElementById('insightText');
+  const resetBtn = document.getElementById('resetBtn');
+
+  // Alertes personnalisées
+  const alerts = {
+    Luxury: {
+      title: '🌟 Prestige & Excellence',
+      text: 'Cette propriété présente des caractéristiques haut de gamme (matériaux nobles, volumes généreux). Position premium sur le marché.'
+    },
+    Normal: {
+      title: '🏡 Habitat classique',
+      text: 'Résidence de type standard avec bon potentiel de valorisation via des améliorations ciblées (rénovation, extension).'
+    },
+    Old: {
+      title: '🕰️ Charme ancien — vigilance requise',
+      text: 'Bâti ancien : une inspection structurelle, mise aux normes électriques / plomberie est vivement conseillée avant acquisition.'
+    }
+  };
+
+  function resetUI() {
+    uploadZone.style.display = 'flex';
+    loadingState.classList.remove('visible');
+    resultSection.classList.remove('visible');
+    divider.style.display = 'none';
+    errorBox.style.display = 'none';
+    confBarFill.style.width = '0%';
+    fileInput.value = '';
+    // nettoyer preview
+    previewImg.src = '';
+    resultClassSpan.textContent = '—';
+    resultClassSpan.className = 'class-value';
+    confPctSpan.textContent = '0%';
+    probContainer.innerHTML = '';
+  }
+
+  function showError(msg) {
+    loadingState.classList.remove('visible');
+    uploadZone.style.display = 'flex';
+    resultSection.classList.remove('visible');
+    divider.style.display = 'none';
+    errorBox.style.display = 'block';
+    errorBox.textContent = `⚠️ ${msg} — Vérifiez que l'API FastAPI tourne sur http://127.0.0.1:8000`;
+  }
+
+  async function handleFile(file) {
+    // preview
+    const reader = new FileReader();
+    reader.onload = (e) => { previewImg.src = e.target.result; };
+    reader.readAsDataURL(file);
+
+    // transition UI
+    uploadZone.style.display = 'none';
+    loadingState.classList.add('visible');
+    resultSection.classList.remove('visible');
+    divider.style.display = 'none';
+    errorBox.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Serveur ${response.status}: ${errorText.substring(0, 80)}`);
+      }
+      const data = await response.json();
+      displayResults(data);
+    } catch (err) {
+      console.error(err);
+      showError(err.message);
+    }
+  }
+
+  function displayResults(data) {
+    loadingState.classList.remove('visible');
+    divider.style.display = 'block';
+    resultSection.classList.add('visible');
+
+    const cls = data.class;
+    const confidence = data.confidence.toFixed(1);
+    const probabilities = data.probabilities;
+
+    // classe principale
+    resultClassSpan.textContent = cls;
+    resultClassSpan.className = `class-value ${cls}`;
+    confPctSpan.textContent = `${confidence}%`;
+    confBarFill.className = `confidence-fill ${cls}`;
+    setTimeout(() => {
+      confBarFill.style.width = `${confidence}%`;
+    }, 20);
+
+    // génération des barres détaillées
+    probContainer.innerHTML = '';
+    const order = ['Luxury', 'Normal', 'Old'];
+    for (let name of order) {
+      const probValue = probabilities[name] || 0;
+      const pctFixed = probValue.toFixed(1);
+      const probDiv = document.createElement('div');
+      probDiv.className = 'prob-item';
+      probDiv.innerHTML = `
+        <div class="prob-header">
+          <span class="prob-name">${name}</span>
+          <span class="prob-percent">${pctFixed}%</span>
+        </div>
+        <div class="bar-bg">
+          <div class="bar-progress ${name}" id="bar-${name}" style="width: 0%;"></div>
+        </div>
+      `;
+      probContainer.appendChild(probDiv);
+    }
+    // petites animations pour barres
+    setTimeout(() => {
+      for (let name of order) {
+        const probValue = probabilities[name] || 0;
+        const barEl = document.getElementById(`bar-${name}`);
+        if (barEl) barEl.style.width = `${probValue.toFixed(1)}%`;
+      }
+    }, 50);
+
+    // mise à jour de la carte d'insight
+    insightCard.className = `insight-card ${cls}`;
+    insightTitle.innerHTML = alerts[cls].title;
+    insightText.innerHTML = alerts[cls].text;
+  }
+
+  // Event listeners
+  triggerBtn.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+  });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  resetBtn.addEventListener('click', resetUI);
+</script>
+</body>
+</html>
