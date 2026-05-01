@@ -1,0 +1,85 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Tunis" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.1,36.7],[10.3,36.7],[10.3,36.9],[10.1,36.9],[10.1,36.7]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Ariana" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.0,36.8],[10.2,36.8],[10.2,37],[10.0,37],[10.0,36.8]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Ben Arous" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.2,36.6],[10.4,36.6],[10.4,36.8],[10.2,36.8],[10.2,36.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Nabeul" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.6,36.6],[11.0,36.6],[11.0,36.9],[10.6,36.9],[10.6,36.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Sousse" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.5,35.8],[10.9,35.8],[10.9,36.1],[10.5,36.1],[10.5,35.8]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Monastir" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.7,35.6],[11.0,35.6],[11.0,35.9],[10.7,35.9],[10.7,35.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Mahdia" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.9,35.4],[11.3,35.4],[11.3,35.7],[10.9,35.7],[10.9,35.4]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Sfax" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.6,34.6],[11.1,34.6],[11.1,35.0],[10.6,35.0],[10.6,34.6]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Gabes" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.0,33.7],[10.5,33.7],[10.5,34.1],[10.0,34.1],[10.0,33.7]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Medenine" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[10.5,33.0],[11.2,33.0],[11.2,33.7],[10.5,33.7],[10.5,33.0]]]
+      }
+    }
+  ]
+}
