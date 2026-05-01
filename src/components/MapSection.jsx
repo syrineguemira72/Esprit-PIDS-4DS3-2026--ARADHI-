@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getZonesMap } from '../services/api';
+import { getZonesMap, getZoneSignals } from '../services/api';
 
 /* -------------------- NORMALISATION DES PRIX -------------------- */
-
 const normalizePrice = (city, price) => {
   const ranges = {
     "Tunis": [3000, 5000],
@@ -26,12 +25,39 @@ const normalizePrice = (city, price) => {
   return Math.min(Math.max(numeric, min), max);
 };
 
-/* -------------------- LOGIQUE METIER -------------------- */
+/* -------------------- FALLBACK STATIQUE -------------------- */
+const getStaticZones = () => {
+  return [
+    { city: 'Tunis', price: '7433', change: 5.2 },
+    { city: 'Sousse', price: '1958', change: 4.1 },
+    { city: 'Sfax', price: '1470', change: -1.5 },
+    { city: 'Monastir', price: '1667', change: 2.3 },
+    { city: 'Bizerte', price: '653', change: -3.2 }
+  ];
+};
 
-const computeZone = (zone) => {
-  const cleanPrice = normalizePrice(zone.city, zone.price);
+const getStaticPins = () => {
+  return [
+    { top: '22%', left: '45%', type: 'pin-buy',  label: 'Tunis Nord' },
+    { top: '30%', left: '52%', type: 'pin-buy',  label: 'Les Berges' },
+    { top: '42%', left: '55%', type: 'pin-wait', label: 'Monastir'   },
+    { top: '48%', left: '50%', type: 'pin-buy',  label: 'Sousse'     },
+    { top: '62%', left: '44%', type: 'pin-sell', label: 'Sfax'       },
+    { top: '18%', left: '40%', type: 'pin-wait', label: 'Bizerte'    },
+    { top: '72%', left: '38%', type: 'pin-wait', label: 'Gabès'      }
+  ];
+};
 
-  const change = zone.change ?? (Math.random() * 8 - 2); // -2% → +6%
+/* -------------------- LOGIQUE METIER AVEC API -------------------- */
+const computeZone = (zone, signalsMap = {}) => {
+  // Utiliser les signaux de l'API si disponibles
+  const apiSignal = signalsMap[zone.city];
+  let change = zone.change ?? (apiSignal?.growth_pct ?? (Math.random() * 8 - 2));
+  
+  // Si on a un signal de l'API, l'utiliser
+  if (apiSignal) {
+    change = apiSignal.growth_pct;
+  }
 
   let tag = "Watch";
   let tagClass = "t-wait";
@@ -47,57 +73,88 @@ const computeZone = (zone) => {
     fillClass = "fill-sell";
   }
 
+  const cleanPrice = normalizePrice(zone.city, zone.price);
+  const pricePerM2 = cleanPrice.toLocaleString();
+
   return {
     ...zone,
-    price: cleanPrice.toLocaleString(),
+    price: pricePerM2,
     tag,
     tagClass,
     fillClass,
-    sub:
-      change > 0
-        ? `Prices rising · +${change.toFixed(1)}% expected`
-        : `Slight decline · ${change.toFixed(1)}% expected`,
-    width: `${Math.min(Math.abs(change) * 15, 100)}%`
+    sub: change > 0
+      ? `Prices rising · +${change.toFixed(1)}% expected`
+      : change < 0
+      ? `Slight decline · ${change.toFixed(1)}% expected`
+      : `Stable market · wait for signal`,
+    width: `${Math.min(Math.abs(change) * 12, 90)}%`,
+    growth_pct: change
   };
 };
 
 /* -------------------- COMPONENT -------------------- */
-
 const MapSection = () => {
   const [zones, setZones] = useState([]);
   const [pins, setPins] = useState([]);
+  const [signalsMap, setSignalsMap] = useState({});
   const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
-    getZonesMap()
-      .then(data => {
-        const fixedZones = (data.zones || []).map(computeZone);
-        setZones(fixedZones);
-        setPins(data.pins);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    loadMapData();
   }, []);
 
-  /* -------------------- FALLBACK CORRIGÉ -------------------- */
+  const loadMapData = async () => {
+    setLoading(true);
+    setApiError(false);
+    
+    try {
+      // Récupérer les signaux ARIMA depuis l'API
+      const signals = await getZoneSignals();
+      const signalsMapData = {};
+      signals.forEach(signal => {
+        signalsMapData[signal.gouvernorat] = signal;
+      });
+      setSignalsMap(signalsMapData);
+      
+      // Récupérer les zones et pins depuis l'API
+      const mapData = await getZonesMap();
+      
+      if (mapData.zones && mapData.zones.length > 0) {
+        // Enrichir les zones avec les signaux ARIMA
+        const enrichedZones = mapData.zones.map(zone => 
+          computeZone(zone, signalsMapData)
+        );
+        setZones(enrichedZones);
+      } else {
+        // Fallback aux données statiques
+        const staticZones = getStaticZones().map(zone => 
+          computeZone(zone, signalsMapData)
+        );
+        setZones(staticZones);
+      }
+      
+      setPins(mapData.pins?.length > 0 ? mapData.pins : getStaticPins());
+      
+    } catch (error) {
+      console.error('Erreur chargement carte:', error);
+      setApiError(true);
+      
+      // Fallback complet aux données statiques
+      const staticZones = getStaticZones().map(zone => computeZone(zone, {}));
+      setZones(staticZones);
+      setPins(getStaticPins());
+      
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const displayZones = zones.length > 0 ? zones : [
-    computeZone({ city: 'Tunis', price: '7433' }),
-    computeZone({ city: 'Sousse', price: '1958' }),
-    computeZone({ city: 'Sfax', price: '1470' }),
-    computeZone({ city: 'Monastir', price: '1667' }),
-    computeZone({ city: 'Bizerte', price: '653' })
-  ];
-
-  const displayPins = pins.length > 0 ? pins : [
-    { top: '22%', left: '45%', type: 'pin-buy',  label: 'Tunis Nord' },
-    { top: '30%', left: '52%', type: 'pin-buy',  label: 'Les Berges' },
-    { top: '42%', left: '55%', type: 'pin-wait', label: 'Monastir'   },
-    { top: '48%', left: '50%', type: 'pin-buy',  label: 'Sousse'     },
-    { top: '62%', left: '44%', type: 'pin-sell', label: 'Sfax'       },
-    { top: '18%', left: '40%', type: 'pin-wait', label: 'Bizerte'    },
-    { top: '72%', left: '38%', type: 'pin-wait', label: 'Gabès'      }
-  ];
+  // Trier les zones: buy en premier, puis wait, puis sell
+  const sortedZones = [...zones].sort((a, b) => {
+    const order = { 'Buy now': 0, 'Watch': 1, 'Sell now': 2 };
+    return (order[a.tag] || 1) - (order[b.tag] || 1);
+  });
 
   return (
     <section className="map-section" id="map">
@@ -108,6 +165,7 @@ const MapSection = () => {
       <p className="s-desc" style={{ marginBottom: '48px' }}>
         Explore Tunisia region by region. Click any zone to see price trends,
         average costs, and our current recommendation.
+        {apiError && <span style={{ color: 'orange', marginLeft: '10px' }}>⚠️ Using demo data</span>}
       </p>
 
       <div className="map-layout">
@@ -123,7 +181,7 @@ const MapSection = () => {
             </svg>
 
             <div className="map-pins">
-              {displayPins.map((pin, idx) => (
+              {pins.map((pin, idx) => (
                 <div key={idx} className="pin"
                      style={{ top: pin.top, left: pin.left }}>
                   <div className={`pin-circle ${pin.type}`}></div>
@@ -142,7 +200,7 @@ const MapSection = () => {
               padding: '4px 10px',
               borderRadius: '8px'
             }}>
-              Powered by Leaflet.js
+              {apiError ? "Powered by AI + Static Data" : "Powered by AI + ARIMA"}
             </div>
 
           </div>
@@ -155,37 +213,70 @@ const MapSection = () => {
             fontSize: '13px',
             fontWeight: 500,
             color: 'var(--mid)',
-            marginBottom: '4px'
+            marginBottom: '4px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            {loading ? "Loading zones..." : "Top regions right now"}
+            <span>{loading ? "Loading zones..." : "Top regions right now"}</span>
+            {!loading && (
+              <button 
+                onClick={loadMapData}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  color: 'var(--terra)'
+                }}
+              >
+                🔄 Refresh
+              </button>
+            )}
           </div>
 
-          {displayZones.map((zone, idx) => (
-            <div key={idx} className="map-zone-card">
-
-              <div className="mzc-header">
-                <div className="mzc-city">{zone.city}</div>
-                <span className={`mzc-tag ${zone.tagClass}`}>{zone.tag}</span>
-              </div>
-
-              <div className="mzc-price">
-                {zone.price} TND
-                <span style={{
-                  fontSize: '13px',
-                  color: 'var(--light)',
-                  fontFamily: "'DM Sans'"
-                }}>/m²</span>
-              </div>
-
-              <div className="mzc-sub">{zone.sub}</div>
-
-              <div className="mzc-bar">
-                <div className={`mzc-fill ${zone.fillClass}`}
-                     style={{ width: zone.width }}></div>
-              </div>
-
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px' }}>
+              <div className="loading-spinner">Loading market data...</div>
             </div>
-          ))}
+          ) : (
+            sortedZones.map((zone, idx) => (
+              <div key={idx} className="map-zone-card">
+
+                <div className="mzc-header">
+                  <div className="mzc-city">{zone.city}</div>
+                  <span className={`mzc-tag ${zone.tagClass}`}>{zone.tag}</span>
+                </div>
+
+                <div className="mzc-price">
+                  {zone.price} TND
+                  <span style={{
+                    fontSize: '13px',
+                    color: 'var(--light)',
+                    fontFamily: "'DM Sans'"
+                  }}>/m²</span>
+                </div>
+
+                <div className="mzc-sub">{zone.sub}</div>
+
+                <div className="mzc-bar">
+                  <div className={`mzc-fill ${zone.fillClass}`}
+                       style={{ width: zone.width }}></div>
+                </div>
+                
+                {zone.growth_pct && (
+                  <div style={{ 
+                    fontSize: '10px', 
+                    marginTop: '8px',
+                    color: zone.growth_pct > 0 ? 'var(--green-tn)' : 'var(--terra)'
+                  }}>
+                    {zone.growth_pct > 0 ? '↑' : '↓'} {Math.abs(zone.growth_pct).toFixed(1)}% forecast
+                  </div>
+                )}
+                
+              </div>
+            ))
+          )}
 
         </div>
       </div>

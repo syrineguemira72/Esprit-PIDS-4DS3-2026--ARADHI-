@@ -213,3 +213,77 @@ def estimate_price(req: EstimateRequest):
         "signal":      signal_text,
         "confidence":  82,
     }
+
+@app.get("/api/listings")
+async def get_listings():
+    """Retourne une liste d'annonces exemple"""
+    listings = [
+        {
+            "id": 1,
+            "title": "Modern Apartment – S+3",
+            "location": "Les Berges du Lac, Tunis",
+            "price": 285000,
+            "area": 120,
+            "rooms": 4,
+            "floor": "Floor 3",
+            "type": "sale",
+            "gouvernorat": "Tunis",
+            "type_bien": "Appartement",
+            "superficie_habitale": 120,
+            "nbpiece": 4,
+            "salle_de_bain": 2,
+            "parking": True,
+            "climatisation": True,
+            "cuisine": True,
+            "terrasse": True,
+            "piscine": False,
+            "ascenseur": True,
+        },
+        {
+            "id": 2,
+            "title": "Family Villa with Garden",
+            "location": "La Marsa, Tunis",
+            "price": 580000,
+            "area": 240,
+            "rooms": 6,
+            "floor": "Garden",
+            "type": "sale",
+            "gouvernorat": "Tunis",
+            "type_bien": "Villa",
+            "superficie_habitale": 240,
+            "nbpiece": 6,
+            "salle_de_bain": 4,
+            "parking": True,
+            "climatisation": True,
+            "cuisine": True,
+            "terrasse": True,
+            "piscine": True,
+            "ascenseur": False,
+        },
+        {
+            "id": 3,
+            "title": "Bright Apartment – S+2",
+            "location": "Sousse Ville",
+            "price": 1200,
+            "area": 85,
+            "rooms": 3,
+            "floor": "Floor 1",
+            "type": "rent",
+            "gouvernorat": "Sousse",
+            "type_bien": "Appartement",
+            "superficie_habitale": 85,
+            "nbpiece": 3,
+            "salle_de_bain": 1,
+            "parking": False,
+            "climatisation": False,
+            "cuisine": False,
+            "terrasse": False,
+            "piscine": False,
+            "ascenseur": False,
+        }
+    ]
+    return listings
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000, reload=True)
