@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://localhost:8000/api",
 });
 
 // ========== LISTINGS ==========
@@ -27,35 +27,38 @@ export const estimatePrice = async (data) => {
     piscine: data.piscine ? 1 : 0,
     ascenseur: data.ascenseur ? 1 : 0,
   };
-  
+
   // Ajouter le prix demandé si fourni (optionnel)
   if (data.prix_demande) {
     requestData.prix_demande = data.prix_demande;
   }
-  
+
   const res = await API.post("/estimate", requestData);
-  
+
   // Enrichir la réponse avec l'analyse du ratio
   if (data.prix_demande && data.prix_demande > 0) {
     const ratio = data.prix_demande / res.data.price;
     res.data.ratio = ratio;
-    
+
     if (ratio < 0.85) {
       res.data.interpretation = "Bonne affaire";
-      res.data.recommandation = "✅ Excellent prix ! Ce bien est sous-évalué par rapport au marché.";
+      res.data.recommandation =
+        "✅ Excellent prix ! Ce bien est sous-évalué par rapport au marché.";
       res.data.ratio_class = "good";
     } else if (ratio > 1.15) {
       res.data.interpretation = "Surévalué";
-      res.data.recommandation = "⚠️ Prix élevé. Négociez ou cherchez d'autres options.";
+      res.data.recommandation =
+        "⚠️ Prix élevé. Négociez ou cherchez d'autres options.";
       res.data.ratio_class = "high";
     } else {
       res.data.interpretation = "Prix correct";
-      res.data.recommandation = "👍 Prix aligné avec le marché. Bonne opportunité.";
+      res.data.recommandation =
+        "👍 Prix aligné avec le marché. Bonne opportunité.";
       res.data.ratio_class = "fair";
     }
     res.data.prix_demande = data.prix_demande;
   }
-  
+
   return res.data;
 };
 
