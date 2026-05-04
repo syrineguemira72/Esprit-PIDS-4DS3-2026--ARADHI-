@@ -1,6 +1,14 @@
 const Navigation = () => {
+  const scrollToAssistant = (e) => {
+    e.preventDefault();
+    const chatbotSection = document.getElementById('chatbot-section');
+    if (chatbotSection) {
+      chatbotSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
-    <nav>
+    <nav style={{ backgroundColor: '#ffffff' }}>  {/* Fond blanc ajouté */}
       <a href="#" className="nav-logo">
         <div className="flag-strip">
           <div className="f1"></div>
@@ -14,7 +22,7 @@ const Navigation = () => {
         <a href="#timing" className="nav-a">Best Time</a>
         <a href="#map" className="nav-a">Zone Map</a>
         <a href="#estimator" className="nav-a">Estimate</a>
-        <a href="#assistant" className="nav-a">AI Assistant</a>
+        <a href="#assistant" className="nav-a" onClick={scrollToAssistant}>AI Assistant</a>
         <a href="#photo" className="nav-a">Photo Scan</a>
       </div>
       <button className="nav-cta">Get Started</button>
