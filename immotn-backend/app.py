@@ -7,10 +7,13 @@ import io
 import re
 import unicodedata
 import threading
+<<<<<<< HEAD
 import os
 import glob
 from pydantic import BaseModel
 from arima import SimpleARIMA  # Assurez-vous que ce module existe
+=======
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
 import torch
 from PIL import Image
 from transformers import (
@@ -23,7 +26,12 @@ from transformers import (
 # ---- Modèle XGBoost ----
 with open("models/xgb_model.pkl", "rb") as f:
     xgb_model = pickle.load(f)
+<<<<<<< HEAD
 GOV_ENCODE = {"Tunis": 0}
+=======
+
+GOV_ENCODE  = {"Tunis": 0}
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
 TYPE_ENCODE = {"Appartement": 0}
 XGB_FEATURES = [
     'climatisation', 'cuisine', 'nbpiece', 'salle_de_bain',
@@ -47,12 +55,17 @@ class EstimateRequest(BaseModel):
 
 class RecommandRequest(BaseModel):
     message: str
+<<<<<<< HEAD
     n: int = 0
+=======
+    n: int = 0          # 0 = chatbot only, >0 = RAG mode
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
 
 class EvalRequest(BaseModel):
     description: str
 
 app = FastAPI(title="EstateAI API")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:5174"],
@@ -63,9 +76,11 @@ app.add_middleware(
 # ---- ARIMA ----
 with open("models/arima_models.pkl", "rb") as f:
     arima_models = pickle.load(f)
+
 GOUVERNORATS = list(arima_models.keys())
 print(f"✅ ARIMA chargé pour: {GOUVERNORATS}")
 
+<<<<<<< HEAD
 # ---- GPT-2 ----
 model_path = "./models_aqaria_gpt2_finetuned/best_model"
 if os.path.exists(model_path):
@@ -76,10 +91,25 @@ else:
     tokenizer = AutoTokenizer.from_pretrained("gpt2")
     gpt2_model = AutoModelForCausalLM.from_pretrained("gpt2")
     print("✅ GPT-2 par défaut")
+=======
+# ── GPT-2 fine-tuné ───────────────────────────────────────────────────────────
+model_path = "./models_aqaria_gpt2_finetuned/best_model"
+import os
+if os.path.exists(model_path):
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    gpt2_model = AutoModelForCausalLM.from_pretrained(model_path)
+    print(f"✅ Modèle chargé depuis {model_path}")
+else:
+    tokenizer = AutoTokenizer.from_pretrained("gpt2")
+    gpt2_model = AutoModelForCausalLM.from_pretrained("gpt2")
+    print("✅ Modèle GPT-2 par défaut")
+
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 gpt2_model.eval()
 _inference_lock = threading.Lock()
+<<<<<<< HEAD
 
 # ---- Dataset (exemple) ----
 csv_path = "./data_immobiler_finale_prete.csv"
@@ -104,24 +134,65 @@ except Exception as e:
     DATASET_VILLES = []
 
 # ---- SegFormer (simplifié) ----
+=======
+print("✅ GPT-2 prêt")
+
+# ── Dataset ───────────────────────────────────────────────────────────────────
+import glob
+csv_path = "/kaggle/input/datasets/jmaighofran/data-immobiler-finale-prete-csv/daaataaa.csv"
+if not os.path.exists(csv_path):
+    csvs = glob.glob("/kaggle/input/**/*.csv", recursive=True)
+    csv_path = csvs[0] if csvs else "./data_Immobiler_finale_prete.csv"
+
+try:
+    df = pd.read_csv(csv_path)
+    print(f"✅ CSV chargé: {len(df)} lignes")
+    df["price_numeric"]   = pd.to_numeric(df.get("price_numeric",   pd.Series(dtype=float)), errors="coerce")
+    df["area_m2_numeric"] = pd.to_numeric(df.get("area_m2_numeric", pd.Series(dtype=float)), errors="coerce")
+    df = df.dropna(subset=["price_numeric", "area_m2_numeric"])
+    df["ville_lower"]          = df["ville"].astype(str).str.lower().str.strip()
+    df["ville_norm"]           = df["ville_lower"].str.replace("é", "e").str.replace("è", "e")
+    df["property_type_lower"]  = df["property_type"].astype(str).str.lower().str.strip()
+    for col in ["piscine", "jardin", "garage", "meuble", "climatisation", "ascenseur"]:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce").fillna(0).astype(int)
+        else:
+            df[col] = 0
+    DATASET_VILLES = df["ville"].dropna().unique().tolist()
+    print(f"✅ Nettoyé: {len(df)} biens | {len(DATASET_VILLES)} villes")
+except Exception as e:
+    print(f"⚠️  Dataset non chargé ({e})")
+    df             = pd.DataFrame()
+    DATASET_VILLES = []
+
+# ── SegFormer ─────────────────────────────────────────────────────────────────
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
 MODEL_NAME = "nvidia/segformer-b2-finetuned-ade-512-512"
 seg_processor = SegformerImageProcessor.from_pretrained(MODEL_NAME)
-seg_model = SegformerForSemanticSegmentation.from_pretrained(MODEL_NAME)
+seg_model     = SegformerForSemanticSegmentation.from_pretrained(MODEL_NAME)
 seg_model.eval()
 id2label = seg_model.config.id2label
+<<<<<<< HEAD
 def get_ids(*keywords):
     return [int(k) for k, v in id2label.items() if any(kw.lower() in v.lower() for kw in keywords)]
+=======
+
+def get_ids(*keywords):
+    return [int(k) for k, v in id2label.items()
+            if any(kw.lower() in v.lower() for kw in keywords)]
+
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
 ADE_GROUPS = {
-    "wall": get_ids("wall"),
-    "floor": get_ids("floor", "flooring", "rug", "carpet"),
-    "ceiling": get_ids("ceiling"),
-    "window": get_ids("window"),
+    "wall":      get_ids("wall"),
+    "floor":     get_ids("floor", "flooring", "rug", "carpet"),
+    "ceiling":   get_ids("ceiling"),
+    "window":    get_ids("window"),
     "furniture": get_ids("sofa", "chair", "table", "bed", "cabinet"),
-    "kitchen": get_ids("kitchen", "refrigerator", "stove", "oven"),
-    "bathroom": get_ids("bathtub", "toilet", "sink", "shower"),
-    "nature": get_ids("grass", "tree", "plant", "flower"),
-    "pool": get_ids("pool", "swimming"),
-    "sky": get_ids("sky"),
+    "kitchen":   get_ids("kitchen", "refrigerator", "stove", "oven"),
+    "bathroom":  get_ids("bathtub", "toilet", "sink", "shower"),
+    "nature":    get_ids("grass", "tree", "plant", "flower"),
+    "pool":      get_ids("pool", "swimming"),
+    "sky":       get_ids("sky"),
 }
 print("✅ SegFormer chargé")
 
@@ -214,8 +285,140 @@ def chat_response(message):
             return resp
     return "I am AQARIA, your Tunisian real estate assistant. Ask me anything!"
 
+# ══════════════════════════════════════════════════════════════════════════════
+# HELPERS — ta logique exacte du notebook (cell 21)
+# ══════════════════════════════════════════════════════════════════════════════
+
+# === Génération GPT-2 ===
+def generate_text(prompt, gen_params):
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True, max_length=256)
+    with _inference_lock:
+        with torch.no_grad():
+            output = gpt2_model.generate(
+                **inputs, pad_token_id=tokenizer.eos_token_id, **gen_params
+            )
+    return tokenizer.decode(output[0], skip_special_tokens=True)
+
+# === Détection d'intention ===
+def detect_intent(message):
+    t = message.lower()
+    t = unicodedata.normalize("NFD", t).encode("ascii", "ignore").decode("utf-8")
+    if re.search(r"evalue|score|analyse|premium|evaluer", t):
+        return "eval"
+    if re.search(r"villa|appart|studio|piscine|jardin|garage|location|vente|s\+", t):
+        return "rag"
+    return "chat"
+
+# === Extraction des critères ===
+def extract_criteres(message):
+    t = message.lower()
+    criteres = {
+        "villes": [], "property_type": None,
+        "piscine": 0, "jardin": 0, "garage": 0, "meuble": 0,
+        "bedrooms_exact": None, "type_transaction": None,
+    }
+    villes_tn = [
+        "la marsa", "marsa", "gammarth", "carthage", "tunis", "sousse",
+        "ariana", "sidi bou said", "hammamet", "el menzah", "ennasr",
+    ]
+    for v in villes_tn:
+        if v in t:
+            criteres["villes"] = [v]
+            break
+    if "villa" in t:
+        criteres["property_type"] = "villa"
+    elif "appart" in t:
+        criteres["property_type"] = "appartement"
+    elif "studio" in t:
+        criteres["property_type"] = "studio"
+    if "piscine" in t: criteres["piscine"] = 1
+    if "jardin"  in t: criteres["jardin"]  = 1
+    if "garage"  in t: criteres["garage"]  = 1
+    if "location" in t or "louer" in t:
+        criteres["type_transaction"] = "location"
+    elif "vente" in t or "acheter" in t:
+        criteres["type_transaction"] = "vente"
+    m = re.search(r"s\+(\d)", t)
+    if m:
+        criteres["bedrooms_exact"] = int(m.group(1))
+    return criteres
+
+# === Recherche des biens ===
+CORRECTIONS = {
+    "lamarsa": "la marsa", "marsa": "la marsa",
+    "gammarth": "gammarth", "gammart": "gammarth",
+    "souse": "sousse", "sousse": "sousse",
+    "soukra": "la soukra", "lasoukra": "la soukra",
+    "tunis": "tunis", "tounes": "tunis",
+    "carthage": "carthage", "cartage": "carthage",
+    "ariana": "ariana", "menzah": "el menzah",
+    "ennaser": "ennasr", "ennasr": "ennasr",
+}
+
+def rechercher_biens(criteres: dict, n: int = 6):
+    if df.empty:
+        return pd.DataFrame(), "❌ Dataset non disponible"
+    res = df.copy()
+    villes = criteres.get("villes", [])
+    if villes:
+        ville_req      = villes[0].lower().strip()
+        ville_corrigee = CORRECTIONS.get(ville_req, ville_req)
+        mask = res["ville_norm"].str.contains(ville_corrigee, na=False)
+        if not mask.any():
+            mask = res["ville_norm"].str.contains(ville_req[:4], na=False)
+        if mask.any():
+            res = res[mask]
+        else:
+            return pd.DataFrame(), f"❌ Ville '{ville_req}' non trouvée"
+    ptype = criteres.get("property_type")
+    if ptype:
+        pl = ptype.lower()
+        if pl == "villa":
+            res = res[res["property_type_lower"].str.contains("villa", na=False)]
+        elif pl in ("appartement", "appart"):
+            res = res[res["property_type_lower"].str.contains("appart", na=False)]
+        elif pl == "studio":
+            res = res[res["property_type_lower"].str.contains("appart", na=False)]
+    for eq in ["piscine", "jardin", "garage", "meuble"]:
+        if criteres.get(eq) == 1:
+            res = res[res[eq] == 1]
+    trans = criteres.get("type_transaction")
+    if trans and "type" in res.columns:
+        if "location" in trans or "louer" in trans:
+            res = res[res["type"].str.lower().str.contains("location", na=False)]
+        elif "vente" in trans:
+            res = res[res["type"].str.lower().str.contains("vente", na=False)]
+    beds = criteres.get("bedrooms_exact")
+    if beds:
+        res = res[res["bedrooms"] == float(beds + 1)]   # S+2 → bedrooms=3
+    res = res.drop_duplicates(subset=["title"]).head(n)
+    return res, f"📊 {len(res)} bien(s) trouvé(s)"
+
+# === Réponses chat prédéfinies ===
+_CHAT_RESPONSES = {
+    "difference vente location": "🔑 La vente est un achat définitif avec transfert de propriété. La location est un loyer mensuel sans acquisition du bien.",
+    "prix moyen":                 "💰 Les prix moyens à Tunis : Appartement S+2 : 200K-400K DT, Villa : 500K-1.5M DT. À La Marsa/Carthage : comptez 30-50% de plus.",
+    "meilleur quartier":          "🏆 Les meilleurs quartiers : La Marsa, Carthage, Sidi Bou Said, Gammarth (prestige), El Menzah, Ennasr (étudiants).",
+    "etudiante":                  "🎓 Pour un étudiant, privilégiez El Menzah, Ennasr, Ariana (proche universités). Les studios commencent à 500 DT/mois.",
+    "investir":                   "💡 L'investissement locatif est intéressant à La Marsa, Carthage (haut standing) et El Menzah (étudiants).",
+    "s+2":                        "🏠 Un S+2 = Salon + 2 chambres (3 pièces). Surface moyenne : 70-100m².",
+    "s+3":                        "🏠 Un S+3 = Salon + 3 chambres (4 pièces). Surface moyenne : 100-130m².",
+}
+
+def chat_response(message):
+    t = message.lower()
+    for key, resp in _CHAT_RESPONSES.items():
+        if key in t:
+            return resp
+    return "Je suis AQARIA, votre assistant immobilier. Je peux vous aider à trouver des biens selon vos critères (ville, type, budget, etc.)."
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SegFormer helper
+# ══════════════════════════════════════════════════════════════════════════════
 @torch.no_grad()
 def analyze_image(img: Image.Image) -> dict:
+<<<<<<< HEAD
     img = img.resize((512, 512)).convert("RGB")
     inputs = seg_processor(images=img, return_tensors="pt")
     logits = seg_model(**inputs).logits
@@ -266,6 +469,53 @@ def analyze_image(img: Image.Image) -> dict:
     return {"chips": chips, "features": features, "estimate": f"+{bonus}%" if bonus > 0 else "0%"}
 
 # ---- Routes API ----
+=======
+    img     = img.resize((512, 512)).convert("RGB")
+    img_arr = np.array(img)
+    inputs  = seg_processor(images=img, return_tensors="pt")
+    logits  = seg_model(**inputs).logits
+    upsampled = torch.nn.functional.interpolate(
+        logits, size=(512, 512), mode="bilinear", align_corners=False
+    )
+    mask  = upsampled.argmax(dim=1).squeeze(0).cpu().numpy()
+    total = mask.size
+
+    ratios = {grp: float(sum(int(np.sum(mask == cid)) for cid in ids)) / total
+              for grp, ids in ADE_GROUPS.items()}
+
+    img_float  = img_arr.astype(np.float32) / 255.0
+    brightness = float(np.mean(
+        0.299 * img_float[:,:,0] + 0.587 * img_float[:,:,1] + 0.114 * img_float[:,:,2]
+    ))
+
+    chips, features, bonus = [], [], 0
+    if ratios["furniture"] > 0.01: chips.append({"label": "Living room", "color": None})
+    if ratios["kitchen"]   > 0.005: chips.append({"label": "Kitchen detected", "color": "var(--gold2)"}); bonus += 2
+    if ratios["bathroom"]  > 0.005: chips.append({"label": "Bathroom detected", "color": None});          bonus += 3
+    if ratios["nature"]    > 0.01:  chips.append({"label": "Garden detected", "color": "var(--green-tn)"}); bonus += 6
+    if ratios["pool"]      > 0.005: chips.append({"label": "Pool detected", "color": "var(--gold2)"}); bonus += 8
+    if ratios["window"]    > 0.01:  chips.append({"label": "Windows present", "color": None}); bonus += 1
+    if brightness          > 0.35:  chips.append({"label": "Good light", "color": None})
+
+    if ratios["furniture"] > 0.01: features.append({"icon":"🛏","label":"Bedrooms","value":"Detected"})
+    if ratios["window"]    > 0.01: features.append({"icon":"🪟","label":"Windows","value":f"{round(ratios['window']*100,1)}% of space"})
+    if ratios["nature"]    > 0.01: features.append({"icon":"🌿","label":"Garden","value":"Yes (+6%)"})
+    if ratios["kitchen"]   > 0.005: features.append({"icon":"🍳","label":"Kitchen","value":"Yes (+2%)"})
+    if ratios["bathroom"]  > 0.005: features.append({"icon":"🚿","label":"Bathroom","value":"Yes (+3%)"})
+    if ratios["pool"]      > 0.005: features.append({"icon":"🏊","label":"Pool","value":"Yes (+8%)"})
+    if brightness          > 0.35:  features.append({"icon":"☀️","label":"Natural light","value":"High (+3%)" if brightness > 0.5 else "Medium"})
+    if ratios["floor"]     > 0.01:  features.append({"icon":"🏠","label":"Floor coverage","value":f"{round(ratios['floor']*100,1)}% detected"})
+    if brightness > 0.5: bonus += 3
+    if not features: features.append({"icon":"❓","label":"No features detected","value":"Try another photo"})
+
+    return {"chips": chips, "features": features, "estimate": f"+{bonus}%" if bonus > 0 else "0%"}
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# ROUTES
+# ══════════════════════════════════════════════════════════════════════════════
+
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
 @app.get("/api/")
 def index():
     return {"status": "ok", "gouvernorats": GOUVERNORATS}
@@ -329,86 +579,223 @@ def evaluer(req: EvalRequest):
         cat = "🔨 TO RENOVATE"
     return {"score": score, "categorie": cat, "recommandation": "Evaluation OK"}
 
+# ── ROUTES — ta logique exacte du notebook (cell 21) ─────────────────────────
+
+@app.get("/api/status")
+def api_status():
+    return {"status": "ok", "biens": len(df) if not df.empty else 0, "villes": DATASET_VILLES}
+
+
+@app.post("/api/recommander")
+def recommander(req: RecommandRequest):
+    message = req.message.strip()
+    if not message:
+        return {"response": {"text": "Message vide", "biens": []}}
+
+    intent = detect_intent(message)
+
+    if intent == "eval":
+        return {"response": {"text": "Utilisez /api/evaluer pour l'évaluation premium", "biens": []}}
+
+    elif intent == "rag":
+        criteres  = extract_criteres(message)
+        biens_df, note = rechercher_biens(criteres, 6)
+        biens = []
+        for _, row in biens_df.iterrows():
+            biens.append({
+                "title":         str(row.get("title", ""))[:60],
+                "price":         int(row["price_numeric"]),
+                "area":          int(row["area_m2_numeric"]),
+                "ville":         str(row.get("ville", "")),
+                "type":          str(row.get("type", "vente")),
+                "property_type": str(row.get("property_type", "")),
+                "bedrooms":      row.get("bedrooms"),
+                "amenities":     [],
+            })
+        text = (f"🔍 {note} pour '{message[:50]}'"
+                if biens else
+                "❌ Aucun bien trouvé. Essayez 'villa La Marsa' ou 'appartement Tunis'.")
+        return {"response": {"text": text, "biens": biens, "chips": [], "mode": "rag"}}
+
+    else:  # chat
+        reply = chat_response(message)
+        return {"response": {"text": reply, "biens": [], "chips": [], "mode": "chat"}}
+
+
+@app.post("/api/evaluer")
+def evaluer(req: EvalRequest):
+    desc = req.description.strip()
+    if not desc:
+        return {"error": "description manquante"}
+
+    t     = desc.lower()
+    score = 50
+    if any(w in t for w in ["piscine", "jardin", "garage"]):              score += 15
+    if any(w in t for w in ["architecte", "luxe", "prestige", "marbre"]): score += 20
+    if any(w in t for w in ["vue mer", "domotique", "haut de gamme"]):    score += 15
+    if len(desc) > 200:                                                    score += 10
+    score = min(100, score)
+
+    if score >= 85:   cat = "🏆 EXCEPTIONNEL"
+    elif score >= 70: cat = "⭐ HAUT STANDING"
+    elif score >= 50: cat = "🏠 STANDARD"
+    else:             cat = "🔨 À RÉNOVER"
+
+    return {"score": score, "categorie": cat, "recommandation": "Évaluation OK"}
+
+
+# ── Endpoints existants (inchangés) ──────────────────────────────────────────
+
 @app.get("/api/predict/trend")
 def predict_trend(gouvernorat: str = "Tunis", horizon: int = 6):
     if gouvernorat not in arima_models:
+<<<<<<< HEAD
         raise HTTPException(status_code=404, detail=f"Governorate '{gouvernorat}' not found")
     return {"gouvernorat": gouvernorat, "horizon": horizon, "forecast": arima_models[gouvernorat].forecast(horizon).tolist()}
+=======
+        raise HTTPException(status_code=404, detail=f"Gouvernorat '{gouvernorat}' inconnu")
+    return {"gouvernorat": gouvernorat, "horizon": horizon,
+            "forecast": arima_models[gouvernorat].forecast(horizon).tolist()}
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
 
 @app.get("/api/zones/signals")
 def zone_signals():
     signals = []
     for gov, model in arima_models.items():
-        forecast = model.forecast(6)
+        forecast   = model.forecast(6)
         last_price = float(model.orig[-1])
+<<<<<<< HEAD
         growth = (forecast[-1] - last_price) / last_price * 100
         signal = "buy" if growth > 4 else "sell" if growth < -2 else "wait"
         signals.append({"gouvernorat": gov, "signal": signal, "growth_pct": round(growth, 1), "last_price": round(last_price), "forecast_6m": round(float(forecast[-1]))})
+=======
+        growth     = (forecast[-1] - last_price) / last_price * 100
+        signal     = "buy" if growth > 4 else "sell" if growth < -2 else "wait"
+        signals.append({
+            "gouvernorat": gov, "signal": signal,
+            "growth_pct": round(growth, 1),
+            "last_price": round(last_price),
+            "forecast_6m": round(float(forecast[-1]))
+        })
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
     return signals
 
 @app.get("/api/zones/map")
 def zones_map():
     GOV_POSITIONS = {
-        "Tunis": {"top": "22%", "left": "45%"}, "Ariana": {"top": "20%", "left": "47%"},
-        "Ben Arous": {"top": "26%", "left": "48%"}, "Manouba": {"top": "24%", "left": "43%"},
-        "Bizerte": {"top": "18%", "left": "40%"}, "Nabeul": {"top": "32%", "left": "54%"},
+        "Tunis":    {"top": "22%", "left": "45%"}, "Ariana":   {"top": "20%", "left": "47%"},
+        "Ben Arous":{"top": "26%", "left": "48%"}, "Manouba":  {"top": "24%", "left": "43%"},
+        "Bizerte":  {"top": "18%", "left": "40%"}, "Nabeul":   {"top": "32%", "left": "54%"},
         "Zaghouan": {"top": "30%", "left": "48%"}, "Monastir": {"top": "42%", "left": "55%"},
-        "Sousse": {"top": "38%", "left": "52%"}, "Sfax": {"top": "58%", "left": "46%"},
+        "Sousse":   {"top": "38%", "left": "52%"}, "Sfax":     {"top": "58%", "left": "46%"},
     }
     zones, pins = [], []
     max_price = max(float(m.orig[-1]) for m in arima_models.values())
     for gov, model in arima_models.items():
-        forecast = model.forecast(6)
+        forecast   = model.forecast(6)
         last_price = float(model.orig[-1])
-        growth = (forecast[-1] - last_price) / last_price * 100
+        growth     = (forecast[-1] - last_price) / last_price * 100
         if growth > 4:
+<<<<<<< HEAD
             signal, tag, tag_class, fill, pin_type = "buy", "Buy now", "t-buy", "fill-buy", "pin-buy"
             sub = "Prices rising · +{:.1f}% expected".format(growth)
+=======
+            signal, tag, tag_class, fill, pin_type = "buy",  "Buy now",  "t-buy",  "fill-buy",  "pin-buy"
+            sub = f"Prices rising · +{round(growth,1)}% expected"
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
         elif growth < -2:
             signal, tag, tag_class, fill, pin_type = "sell", "Sell now", "t-sell", "fill-sell", "pin-sell"
             sub = "Peak reached · {:.1f}% drop expected".format(growth)
         else:
-            signal, tag, tag_class, fill, pin_type = "wait", "Watch", "t-wait", "fill-wait", "pin-wait"
+            signal, tag, tag_class, fill, pin_type = "wait", "Watch",    "t-wait", "fill-wait", "pin-wait"
             sub = "Flat trend · wait for signal"
+<<<<<<< HEAD
         zones.append({"city": gov, "tag": tag, "tagClass": tag_class, "price": f"{round(last_price/120):,}", "sub": sub,
                       "width": f"{round((last_price/max_price)*100)}%", "fillClass": fill, "signal": signal, "growth_pct": round(growth, 1)})
         if gov in GOV_POSITIONS:
             pins.append({"top": GOV_POSITIONS[gov]["top"], "left": GOV_POSITIONS[gov]["left"], "type": pin_type, "label": gov})
+=======
+
+        zones.append({
+            "city": gov, "tag": tag, "tagClass": tag_class,
+            "price": f"{round(last_price/120):,}".replace(",", " "), "sub": sub,
+            "width": f"{round((last_price/max_price)*100)}%", "fillClass": fill,
+            "signal": signal, "growth_pct": round(growth, 1),
+        })
+        if gov in GOV_POSITIONS:
+            pins.append({"top": GOV_POSITIONS[gov]["top"], "left": GOV_POSITIONS[gov]["left"],
+                         "type": pin_type, "label": gov})
+
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
     zones.sort(key=lambda z: {"buy": 0, "wait": 1, "sell": 2}[z["signal"]])
     return {"zones": zones, "pins": pins}
 
 @app.post("/api/estimate")
 def estimate_price(req: EstimateRequest):
     row = pd.DataFrame([{
+<<<<<<< HEAD
         'climatisation': req.climatisation, 'cuisine': req.cuisine, 'nbpiece': req.rooms,
         'salle_de_bain': req.salle_de_bain, 'superficie_terrain': req.surface * 1.5,
         'superficie_habitale': req.surface, 'parking': req.parking, 'piscine': req.piscine,
         'terrasse': req.terrasse, 'ascenseur': req.ascenseur,
         'gouvernorat': GOV_ENCODE.get(req.gouvernorat, 0),
+=======
+        'climatisation': req.climatisation, 'cuisine': req.cuisine,
+        'nbpiece': req.rooms, 'salle_de_bain': req.salle_de_bain,
+        'superficie_terrain': req.surface * 1.5, 'superficie_habitale': req.surface,
+        'parking': req.parking, 'piscine': req.piscine, 'terrasse': req.terrasse,
+        'ascenseur': req.ascenseur,
+        'gouvernorat':      GOV_ENCODE.get(req.gouvernorat, 0),
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
         'typeImm_regroupe': TYPE_ENCODE.get(req.type_bien, 0),
     }])[XGB_FEATURES]
-    price = max(float(xgb_model.predict(row)[0]), 10_000)
+
+    price    = max(float(xgb_model.predict(row)[0]), 10_000)
     price_m2 = round(price / req.surface) if req.surface > 0 else 0
+
     signal_text = ""
     if req.gouvernorat in arima_models:
-        model = arima_models[req.gouvernorat]
+        model    = arima_models[req.gouvernorat]
         forecast = model.forecast(6)
-        last = float(model.orig[-1])
-        growth = (forecast[-1] - last) / last * 100
+        last     = float(model.orig[-1])
+        growth   = (forecast[-1] - last) / last * 100
         if growth > 4:
             signal_text = f"📈 Great time to sell — prices rising +{round(growth,1)}% expected"
         elif growth < -2:
             signal_text = f"📉 Consider waiting — prices may drop {round(growth,1)}%"
         else:
             signal_text = f"➡️ Market is stable in {req.gouvernorat}"
-    return {"price": round(price), "price_low": round(price * 0.92), "price_high": round(price * 1.08), "price_m2": price_m2, "currency": "TND", "signal": signal_text, "confidence": 82}
+
+    return {
+        "price": round(price), "price_low": round(price * 0.92),
+        "price_high": round(price * 1.08), "price_m2": price_m2,
+        "currency": "TND", "signal": signal_text, "confidence": 82,
+    }
 
 @app.get("/api/listings")
 async def get_listings():
     return [
+<<<<<<< HEAD
         {"id": 1, "title": "Modern Apartment – S+3", "location": "Les Berges du Lac, Tunis", "price": 285000, "area": 120, "rooms": 4, "floor": "Floor 3", "type": "sale", "gouvernorat": "Tunis", "type_bien": "Appartement", "superficie_habitale": 120, "nbpiece": 4, "salle_de_bain": 2, "parking": True, "climatisation": True, "cuisine": True, "terrasse": True, "piscine": False, "ascenseur": True},
         {"id": 2, "title": "Family Villa with Garden", "location": "La Marsa, Tunis", "price": 580000, "area": 240, "rooms": 6, "floor": "Garden", "type": "sale", "gouvernorat": "Tunis", "type_bien": "Villa", "superficie_habitale": 240, "nbpiece": 6, "salle_de_bain": 4, "parking": True, "climatisation": True, "cuisine": True, "terrasse": True, "piscine": True, "ascenseur": False},
         {"id": 3, "title": "Bright Apartment – S+2", "location": "Sousse Ville", "price": 1200, "area": 85, "rooms": 3, "floor": "Floor 1", "type": "rent", "gouvernorat": "Sousse", "type_bien": "Appartement", "superficie_habitale": 85, "nbpiece": 3, "salle_de_bain": 1, "parking": False, "climatisation": False, "cuisine": False, "terrasse": False, "piscine": False, "ascenseur": False},
+=======
+        {"id": 1, "title": "Modern Apartment – S+3", "location": "Les Berges du Lac, Tunis",
+         "price": 285000, "area": 120, "rooms": 4, "floor": "Floor 3", "type": "sale",
+         "gouvernorat": "Tunis", "type_bien": "Appartement", "superficie_habitale": 120,
+         "nbpiece": 4, "salle_de_bain": 2, "parking": True, "climatisation": True,
+         "cuisine": True, "terrasse": True, "piscine": False, "ascenseur": True},
+        {"id": 2, "title": "Family Villa with Garden", "location": "La Marsa, Tunis",
+         "price": 580000, "area": 240, "rooms": 6, "floor": "Garden", "type": "sale",
+         "gouvernorat": "Tunis", "type_bien": "Villa", "superficie_habitale": 240,
+         "nbpiece": 6, "salle_de_bain": 4, "parking": True, "climatisation": True,
+         "cuisine": True, "terrasse": True, "piscine": True, "ascenseur": False},
+        {"id": 3, "title": "Bright Apartment – S+2", "location": "Sousse Ville",
+         "price": 1200, "area": 85, "rooms": 3, "floor": "Floor 1", "type": "rent",
+         "gouvernorat": "Sousse", "type_bien": "Appartement", "superficie_habitale": 85,
+         "nbpiece": 3, "salle_de_bain": 1, "parking": False, "climatisation": False,
+         "cuisine": False, "terrasse": False, "piscine": False, "ascenseur": False},
+>>>>>>> 3b09ddbe316f5eee007542416ca5a48c055f15e0
     ]
 
 @app.post("/analyze-photo")
@@ -416,8 +803,9 @@ async def analyze_photo(image: UploadFile = File(...)):
     if not image.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
     contents = await image.read()
-    result = analyze_image(Image.open(io.BytesIO(contents)))
+    result   = analyze_image(Image.open(io.BytesIO(contents)))
     return result
+
 
 if __name__ == "__main__":
     import uvicorn
