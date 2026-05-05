@@ -291,7 +291,11 @@ def analyze_image(img: Image.Image) -> dict:
 # ── ROUTES ────────────────────────────────────────────────────────────────────
 @app.get("/api/")
 def index():
-    return {"status": "ok", "gouvernorats": GOUVERNORATS}
+    return {"status":"ok","gouvernorats":GOUVERNORATS}
+
+@app.get("/api/status")
+def api_status():
+    return {"status":"ok","biens":len(df) if not df.empty else 0,"villes":DATASET_VILLES}
 
 @app.get("/api/status")
 def api_status():
@@ -347,7 +351,7 @@ def predict_trend(gouvernorat: str = "Tunis", horizon: int = 6):
 def zone_signals():
     signals = []
     for gov, model in arima_models.items():
-        forecast = model.forecast(6)
+        forecast   = model.forecast(6)
         last_price = float(model.orig[-1])
         growth = (forecast[-1] - last_price) / last_price * 100
         signal = "buy" if growth > 4 else "sell" if growth < -2 else "wait"
