@@ -209,7 +209,12 @@ export default function AqariaApp() {
   }, []);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      const parent = messagesEndRef.current.parentElement;
+      if (parent) {
+        parent.scrollTo({ top: parent.scrollHeight, behavior: "smooth" });
+      }
+    }
   }, [messages]);
 
   const showToastMsg = (text) => {
@@ -326,32 +331,34 @@ export default function AqariaApp() {
   const handleInputChange = (e) => { setInputVal(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(e.target.scrollHeight, 100) + "px"; if (e.target.value.trim().length > 3) setActiveMode(detectModel(e.target.value.trim())); };
 
   return (
-    <>
-      <div id="toast" className={toast.show ? "show" : ""}>{toast.text}</div>
-      <header>
-        <div className="brand"><div className="brand-logo">🏠</div><div><div className="brand-name">AQARIA</div><div className="brand-tag">Real Estate AI · GPT-2</div></div></div>
-        <div className="intent-bar"><div className={`intent-dot ${activeMode || ""}`} /><span className={`intent-label ${activeMode ? "active" : ""}`}>{activeMode ? (activeMode === "chat" ? "💬 Chatbot" : activeMode === "rag" ? "🔎 RAG" : "⭐ Premium") : "Awaiting..."}</span></div>
-        <div className="api-zone"><div className={`api-dot ${apiStatus.dot}`} /><span>API:</span><input className="api-url-input" placeholder="https://xxx.trycloudflare.com" value={apiUrlInput} onChange={e => setApiUrlInput(e.target.value)} /><button className="connect-btn" onClick={connectAPI}>Connect</button><span>{apiStatus.text}</span></div>
-      </header>
-      <div className="app-body">
-        <div className="sidebar">
-          <div className="sidebar-section"><div className="sidebar-title">Model</div><div className="mode-pills"><div className={`mode-pill ${activeMode === "chat" ? "active-chat" : ""}`}>💬 Chatbot</div><div className={`mode-pill ${activeMode === "rag" ? "active-rag" : ""}`}>🔎 RAG</div><div className={`mode-pill ${activeMode === "premium" ? "active-premium" : ""}`}>⭐ Premium</div></div></div>
-          <div className="sidebar-section"><div className="sidebar-title">Stats</div><div className="stats-grid"><div className="stat-mini"><div className="stat-val">{apiStatus.biens}</div><div className="stat-lbl">Properties</div></div><div className="stat-mini"><div className="stat-val">124M</div><div className="stat-lbl">Params</div></div></div></div>
-          <div className="sidebar-section"><div className="sidebar-title">Examples</div>
-            <button className="q-prompt" onClick={() => usePrompt("Villa with pool in La Marsa")}><span className="qp-tag rag">RAG</span><br />Villa pool La Marsa</button>
-            <button className="q-prompt" onClick={() => usePrompt("What is the average price in Carthage?")}><span className="qp-tag chat">CHAT</span><br />Price Carthage</button>
-            <button className="q-prompt" onClick={() => usePrompt("Evaluate this luxury villa")}><span className="qp-tag eval">EVAL</span><br />Evaluate villa</button>
+    <section id="assistant" style={{ backgroundColor: '#eef2f6', padding: '60px 20px' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', height: '700px', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg)', borderRadius: '16px', border: '1px solid var(--border)', overflow: 'hidden', position: 'relative' }}>
+        <div id="toast" className={toast.show ? "show" : ""}>{toast.text}</div>
+        <header>
+          <div className="brand"><div className="brand-logo">🏠</div><div><div className="brand-name">AQARIA</div><div className="brand-tag">Real Estate AI · GPT-2</div></div></div>
+          <div className="intent-bar"><div className={`intent-dot ${activeMode || ""}`} /><span className={`intent-label ${activeMode ? "active" : ""}`}>{activeMode ? (activeMode === "chat" ? "💬 Chatbot" : activeMode === "rag" ? "🔎 RAG" : "⭐ Premium") : "Awaiting..."}</span></div>
+          <div className="api-zone"><div className={`api-dot ${apiStatus.dot}`} /><span>API:</span><input className="api-url-input" placeholder="https://xxx.trycloudflare.com" value={apiUrlInput} onChange={e => setApiUrlInput(e.target.value)} /><button className="connect-btn" onClick={connectAPI}>Connect</button><span>{apiStatus.text}</span></div>
+        </header>
+        <div className="app-body">
+          <div className="sidebar">
+            <div className="sidebar-section"><div className="sidebar-title">Model</div><div className="mode-pills"><div className={`mode-pill ${activeMode === "chat" ? "active-chat" : ""}`}>💬 Chatbot</div><div className={`mode-pill ${activeMode === "rag" ? "active-rag" : ""}`}>🔎 RAG</div><div className={`mode-pill ${activeMode === "premium" ? "active-premium" : ""}`}>⭐ Premium</div></div></div>
+            <div className="sidebar-section"><div className="sidebar-title">Stats</div><div className="stats-grid"><div className="stat-mini"><div className="stat-val">{apiStatus.biens}</div><div className="stat-lbl">Properties</div></div><div className="stat-mini"><div className="stat-val">124M</div><div className="stat-lbl">Params</div></div></div></div>
+            <div className="sidebar-section"><div className="sidebar-title">Examples</div>
+              <button className="q-prompt" onClick={() => usePrompt("Villa with pool in La Marsa")}><span className="qp-tag rag">RAG</span><br />Villa pool La Marsa</button>
+              <button className="q-prompt" onClick={() => usePrompt("What is the average price in Carthage?")}><span className="qp-tag chat">CHAT</span><br />Price Carthage</button>
+              <button className="q-prompt" onClick={() => usePrompt("Evaluate this luxury villa")}><span className="qp-tag eval">EVAL</span><br />Evaluate villa</button>
+            </div>
           </div>
-        </div>
-        <div id="chatbot-section" className="main-content">
-          <div className="messages">
-            {showWelcome && <div className="welcome"><div className="welcome-logo">🏠</div><h2>AQARIA — Real Estate AI</h2><p>Ask anything about Tunisian real estate.</p><div className="welcome-pills"><span className="wpill" onClick={() => usePrompt("Villa with pool La Marsa")}>🔎 Villa pool</span><span className="wpill" onClick={() => usePrompt("Average price Carthage")}>💬 Price</span><span className="wpill" onClick={() => usePrompt("Evaluate villa S+4 pool")}>⭐ Evaluate</span></div></div>}
-            {messages.map((msg, idx) => <Message key={msg.id || idx} msg={msg} />)}
-            <div ref={messagesEndRef} />
+          <div id="chatbot-section" className="main-content">
+            <div className="messages">
+              {showWelcome && <div className="welcome"><div className="welcome-logo">🏠</div><h2>AQARIA — Real Estate AI</h2><p>Ask anything about Tunisian real estate.</p><div className="welcome-pills"><span className="wpill" onClick={() => usePrompt("Villa with pool La Marsa")}>🔎 Villa pool</span><span className="wpill" onClick={() => usePrompt("Average price Carthage")}>💬 Price</span><span className="wpill" onClick={() => usePrompt("Evaluate villa S+4 pool")}>⭐ Evaluate</span></div></div>}
+              {messages.map((msg, idx) => <Message key={msg.id || idx} msg={msg} />)}
+              <div ref={messagesEndRef} />
+            </div>
+            <div className="input-zone"><div className="input-wrap"><textarea ref={textareaRef} className="chat-textarea" rows={1} placeholder="Ask something..." value={inputVal} onChange={handleInputChange} onKeyDown={handleKeyDown} /></div><button className="send-btn" onClick={() => send()}><svg viewBox="0 0 24 24" width={14} height={14} fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z" /></svg></button></div>
           </div>
-          <div className="input-zone"><div className="input-wrap"><textarea ref={textareaRef} className="chat-textarea" rows={1} placeholder="Ask something..." value={inputVal} onChange={handleInputChange} onKeyDown={handleKeyDown} /></div><button className="send-btn" onClick={() => send()}><svg viewBox="0 0 24 24" width={14} height={14} fill="#fff"><path d="M2 21l21-9L2 3v7l15 2-15 2z" /></svg></button></div>
         </div>
       </div>
-    </>
+    </section>
   );
 }

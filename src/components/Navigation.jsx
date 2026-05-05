@@ -10,11 +10,7 @@ const Navigation = () => {
   return (
     <nav style={{ backgroundColor: '#ffffff' }}>  {/* Fond blanc ajouté */}
       <a href="#" className="nav-logo">
-        <div className="flag-strip">
-          <div className="f1"></div>
-          <div className="f2"></div>
-          <div className="f3"></div>
-        </div>
+        <img src="/favicon.ico" alt="Icon" style={{ height: '32px', margin: '0 8px 0 0', objectFit: 'contain' }} />
         <div className="logo-word">ARADHI<span>TN</span></div>
       </a>
       <div className="nav-links">

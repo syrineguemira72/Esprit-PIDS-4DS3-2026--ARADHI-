@@ -74,12 +74,8 @@ print(f"✅ ARIMA chargé pour: {GOUVERNORATS}")
 print("📥 Chargement Standing Model...")
 try:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    standing_model = tf.keras.models.load_model(
-        "models/standing.keras",
-        custom_objects=None,
-        compile=False,
-        safe_mode=False
-    )
+    standing_model_path = os.path.join(BASE_DIR, 'models', 'standing.keras')
+    standing_model = tf.keras.models.load_model(standing_model_path)
     print("✅ Standing model chargé")
 except Exception as e:
     standing_model = None
@@ -104,7 +100,7 @@ _inference_lock = threading.Lock()
 csv_path = "/kaggle/input/datasets/jmaighofran/data-immobiler-finale-prete-csv/daaataaa.csv"
 if not os.path.exists(csv_path):
     csvs     = glob.glob("/kaggle/input/**/*.csv", recursive=True)
-    csv_path = csvs[0] if csvs else os.path.join(BASE_DIR, "data_Immobiler_finale_prete.csv")
+    csv_path = csvs[0] if csvs else "./data_Immobiler_finale_prete.csv"
 try:
     df = pd.read_csv(csv_path)
     df["price_numeric"]   = pd.to_numeric(df.get("price_numeric",   pd.Series(dtype=float)), errors="coerce")

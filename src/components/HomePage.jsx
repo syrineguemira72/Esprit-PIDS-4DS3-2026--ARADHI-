@@ -16,14 +16,23 @@ const HomePage = () => {
     <>
       <Navigation />
       <Hero />
+      <div className="section-spacer" />
       <SearchBar />
+      <div className="section-spacer" />
       <ListingsSection />
+      <div className="section-spacer" />
       <TimingSection />
+      <div className="section-spacer" />
       <MapSection />
+      <div className="section-spacer" />
       <EstimatorSection />
+      <div className="section-spacer" />
       <ChatbotSection />
+      <div className="section-spacer" />
       <PhotoAnalysisSection />
+      <div className="section-spacer" />
       <Standing />
+      <div className="section-spacer" />
       <CtaSection />
       <Footer />
     </>
