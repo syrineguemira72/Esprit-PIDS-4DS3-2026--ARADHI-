@@ -58,7 +58,26 @@ Academic Year: 2025–2026
 
 ## Getting Started
 ```bash
+# Clone The project
 git clone https://github.com/syrineguemira72/Esprit-PIDS-4DS3-2026--ARADHI-.git
+
+# Create and activate a virtual Env
 cd Esprit-PIDS-4DS3-2026--ARADHI-
+virtualenv venv
+venv\Scripts\activate
+
+# Install Project Requirements
 pip install -r requirements.txt
-github.com
+
+# Run the frontend
+npm run dev
+```
+### In another terminal
+
+```bash
+# Run the frontend
+cd immotn-backend
+uvicorn app:app --reload --port 8000
+```
+
+⚠️ Make sure to create the ***"models"*** folder under the ***"immotn-backend"*** directory and upload the neccessary models.

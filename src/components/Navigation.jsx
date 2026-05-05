@@ -16,6 +16,7 @@ const Navigation = () => {
         <a href="#estimator" className="nav-a">Estimate</a>
         <a href="#assistant" className="nav-a">AI Assistant</a>
         <a href="#photo" className="nav-a">Photo Scan</a>
+        <a href="#standing" className="nav-a">Standing Detection</a>
       </div>
       <button className="nav-cta">Get Started</button>
     </nav>

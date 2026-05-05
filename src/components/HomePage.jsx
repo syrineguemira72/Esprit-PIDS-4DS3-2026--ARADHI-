@@ -7,6 +7,7 @@ import MapSection from '../components/MapSection';
 import EstimatorSection from './EstimatorSection';
 import ChatbotSection from './ChatbotSection';
 import PhotoAnalysisSection from '../components/PhotoAnalysisSection';
+import Standing from '../components/standing';
 import CtaSection from './CtaSection';
 import Footer from './Footer';
 
@@ -22,6 +23,7 @@ const HomePage = () => {
       <EstimatorSection />
       <ChatbotSection />
       <PhotoAnalysisSection />
+      <Standing />
       <CtaSection />
       <Footer />
     </>

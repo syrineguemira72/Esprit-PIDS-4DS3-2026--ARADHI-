@@ -32,7 +32,7 @@ const ChatbotSection = () => {
           </div>
         </div>
         <div className="chat-window">
-          <div className="chat-topbar"><div className="chat-av">🏠</div><div><div className="chat-av-name">ImmoBot TN</div><div className="chat-av-status"><div className="status-dot"></div>Online · AI assistant</div></div></div>
+          <div className="chat-topbar"><div className="chat-av">🏠</div><div><div className="chat-av-name">AradhiBot TN</div><div className="chat-av-status"><div className="status-dot"></div>Online · AI assistant</div></div></div>
           <div className="chat-messages">
             {messages.map((msg, idx) => (
               <div key={idx} className={`msg msg-${msg.role}`}>

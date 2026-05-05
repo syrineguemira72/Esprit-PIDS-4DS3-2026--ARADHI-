@@ -1,7 +1,7 @@
 const Footer = () => {
   return (
     <footer>
-      <div className="footer-logo">Immo<span>TN</span></div>
+      <div className="footer-logo">ARADHI<span>TN</span></div>
       <div className="footer-links">
         <a href="#">Listings</a>
         <a href="#">Market Timing</a>
@@ -10,7 +10,7 @@ const Footer = () => {
         <a href="#">AI Assistant</a>
         <a href="#">About</a>
       </div>
-      <div className="footer-right">© 2025 ImmoTN · All rights reserved</div>
+      <div className="footer-right">© 2026 ARADHI · All rights reserved</div>
     </footer>
   );
 };
