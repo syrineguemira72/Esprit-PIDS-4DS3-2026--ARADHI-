@@ -71,7 +71,7 @@ const Standing = () => {
               </div>
               <div className="b-text">
                 <h4>Instant Standing Detection</h4>
-                <p>Upload a photo and instantly know if your property classification (e.g. High Standing, Standard).</p>
+                <p>Upload a photo and instantly know if your property is  High Standing, Standard.</p>
               </div>
             </div>
             <div className="benefit-item">

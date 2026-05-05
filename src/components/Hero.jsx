@@ -1,3 +1,5 @@
+import heroImg from '../assets/111.jpg';
+
 const Hero = () => {
   return (
     <div className="hero">
@@ -9,7 +11,9 @@ const Hero = () => {
           <div className="eyebrow-text">Tunisia's Smart Property Platform</div>
         </div>
         <h1>Find Your<br />Perfect Home<br />in <em>Tunisia</em></h1>
-        <p className="hero-desc">We use AI to tell you when to buy, where to buy, and whether a price is fair — so you can move with confidence.</p>
+        <p className="hero-desc">
+          We use AI to tell you when to buy, where to buy, and whether a price is fair — so you can move with confidence.
+        </p>
         <div className="hero-actions">
           <a href="#listings" className="btn-primary">Explore Listings</a>
           <a href="#estimator" className="btn-ghost">Estimate My Property</a>
@@ -20,15 +24,20 @@ const Hero = () => {
           <div><div className="trust-n">98%</div><div className="trust-l">Happy users</div></div>
         </div>
       </div>
+
       <div className="hero-img-block">
-        <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.15 }} viewBox="0 0 400 480" fill="none">
-          <rect x="60" y="80" width="280" height="240" rx="8" fill="#C1602A" />
-          <rect x="40" y="60" width="320" height="20" rx="4" fill="#A0481C" />
-          <rect x="100" y="140" width="80" height="100" rx="4" fill="#FAF7F2" />
-          <rect x="220" y="140" width="80" height="100" rx="4" fill="#FAF7F2" />
-          <rect x="150" y="260" width="100" height="60" rx="4" fill="#FAF7F2" />
-          <path d="M200 30 L360 80 L40 80 Z" fill="#8b6542" />
-        </svg>
+        <img
+          src={heroImg}
+          alt="Propriété en Tunisie"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: '16px',
+          }}
+        />
         <div className="hero-img-overlay">
           <div className="hero-img-price">285 000 TND</div>
           <div className="hero-img-loc">📍 Les Berges du Lac, Tunis</div>
