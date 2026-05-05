@@ -42,18 +42,15 @@ export const estimatePrice = async (data) => {
 
     if (ratio < 0.85) {
       res.data.interpretation = "Bonne affaire";
-      res.data.recommandation =
-        "✅ Excellent prix ! Ce bien est sous-évalué par rapport au marché.";
+      res.data.recommandation = "✅ Excellent prix ! Ce bien est sous-évalué par rapport au marché.";
       res.data.ratio_class = "good";
     } else if (ratio > 1.15) {
       res.data.interpretation = "Surévalué";
-      res.data.recommandation =
-        "⚠️ Prix élevé. Négociez ou cherchez d'autres options.";
+      res.data.recommandation = "⚠️ Prix élevé. Négociez ou cherchez d'autres options.";
       res.data.ratio_class = "high";
     } else {
       res.data.interpretation = "Prix correct";
-      res.data.recommandation =
-        "👍 Prix aligné avec le marché. Bonne opportunité.";
+      res.data.recommandation = "👍 Prix aligné avec le marché. Bonne opportunité.";
       res.data.ratio_class = "fair";
     }
     res.data.prix_demande = data.prix_demande;
