@@ -1,0 +1,123 @@
+name: "CICD"
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - "*"
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: aradhi-backend
+
+jobs:
+  # ─────────────────────────────────────────────────────────────
+  # JOB 1 — Lint + Tests
+  # ─────────────────────────────────────────────────────────────
+  tests-and-lint:
+    timeout-minutes: 30
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v4
+        with:
+          prefix: SL_SH_
+
+      - name: Install Poetry
+        run: pipx install "poetry==1.6.1"
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "poetry"
+
+      - name: Install Python dependencies
+        run: |
+          poetry env use "3.10"
+          poetry install --no-interaction --no-ansi
+
+      - name: Run lint (flake8)
+        run: poetry run flake8 backend/
+
+      - name: Run tests (pytest)
+        run: poetry run pytest tests/ -v
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 2 — Build frontend React/Vite
+  # ─────────────────────────────────────────────────────────────
+  build-frontend:
+    timeout-minutes: 15
+    runs-on: ubuntu-22.04
+    needs: tests-and-lint
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 1
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 3 — Build Docker image → push to Amazon ECR
+  # ─────────────────────────────────────────────────────────────
+  build-and-push-image:
+    timeout-minutes: 30
+    runs-on: ubuntu-22.04
+    needs: tests-and-lint
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Inject slug/short variables
+        uses: rlespinasse/github-slug-action@v4
+        with:
+          prefix: SL_SH_
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./docker/Dockerfile
+          tags: |
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.SL_SH_GITHUB_REF_NAME_SLUG }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.SL_SH_GITHUB_SHA_SHORT }}
+            ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: true

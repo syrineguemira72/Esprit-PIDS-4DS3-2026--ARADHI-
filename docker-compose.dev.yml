@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  # ── Backend API (hot reload in dev) ─────────────────────────
+  aradhi-backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev   # lighter dev image with hot reload
+    volumes:
+      - ./backend:/app/backend             # live code sync
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+
+  # ── Backend — test runner ───────────────────────────────────
+  aradhi-backend-test:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - ./backend:/app/backend
+      - ./tests:/app/tests
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: pytest
+
+  # ── Frontend (Vite dev server) ───────────────────────────────
+  aradhi-frontend:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    command: sh -c "npm ci && npm run dev -- --host"
+
+  # ── Poetry lock helper ───────────────────────────────────────
+  lock:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    volumes:
+      - .:/app
+    command: poetry lock --verbose

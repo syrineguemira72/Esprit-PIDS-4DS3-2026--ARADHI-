@@ -76,7 +76,7 @@ npm run dev
 
 ```bash
 # Run the frontend
-cd immotn-backend
+cd backend
 uvicorn app:app --reload --port 8000
 ```
 
