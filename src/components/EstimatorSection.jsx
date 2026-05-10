@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { estimatePrice, getGouvernorats } from '../services/api';
 
 const EstimatorSection = () => {
@@ -277,7 +277,7 @@ const EstimatorSection = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .equipements {
           display: grid;
           grid-template-columns: repeat(2, 1fr);

@@ -99,7 +99,7 @@ const computeZone = (zone, signalsMap = {}) => {
 const MapSection = () => {
   const [zones, setZones] = useState([]);
   const [pins, setPins] = useState([]);
-  const [signalsMap, setSignalsMap] = useState({});
+  const [, setSignalsMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(false);
 
@@ -310,7 +310,7 @@ const MapSection = () => {
       </div>
 
       {/* Styles CSS pour le scrollbar vertical */}
-      <style jsx>{`
+      <style>{`
         .zones-vertical-scroll::-webkit-scrollbar {
           width: 4px;
         }

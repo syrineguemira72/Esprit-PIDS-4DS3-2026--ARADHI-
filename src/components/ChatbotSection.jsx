@@ -544,7 +544,10 @@ export default function AqariaApp() {
     else await handleChat(text, base);
   };
 
-  const usePrompt = (text) => { setInputVal(text); send(text); };
+  const handlePromptClick = (text) => {
+  setInputVal(text);
+  send(text);
+};
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
   };
@@ -609,10 +612,10 @@ export default function AqariaApp() {
                   <h2>ARADHI — Real Estate AI</h2>
                   <p>Ask anything about Tunisian real estate. Price estimation , property search , and premium evaluation!</p>
                   <div className="welcome-pills">
-                    <span className="wpill" onClick={() => usePrompt("Villa with pool La Marsa")}>🔎 Villa search</span>
-                    <span className="wpill" onClick={() => usePrompt("Price villa 180m² Carthage")}>💰 Price </span>
-                    <span className="wpill" onClick={() => usePrompt("Evaluate luxury villa")}>⭐ Evaluate</span>
-                    <span className="wpill" onClick={() => usePrompt("Best neighborhoods Tunis")}>💬 Chat</span>
+                    <span className="wpill" onClick={() => handlePromptClick("Villa with pool La Marsa")}>🔎 Villa search</span>
+                    <span className="wpill" onClick={() => handlePromptClick("Price villa 180m² Carthage")}>💰 Price </span>
+                    <span className="wpill" onClick={() => handlePromptClick("Evaluate luxury villa")}>⭐ Evaluate</span>
+                    <span className="wpill" onClick={() => handlePromptClick("Best neighborhoods Tunis")}>💬 Chat</span>
                   </div>
                 </div>
               )}
