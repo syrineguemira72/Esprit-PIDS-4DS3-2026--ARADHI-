@@ -75,7 +75,7 @@ print("📥 Chargement Standing Model...")
 try:
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     standing_model_path = os.path.join(BASE_DIR, 'models', 'house_classifier_final.keras')
-    standing_model = tf.keras.models.load_model(standing_model_path)
+    standing_model = tf.keras.models.load_model("models\house_classifier_final.keras")
     print("✅ Standing model chargé")
 except Exception as e:
     standing_model = None

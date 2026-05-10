@@ -1,0 +1,37 @@
+[tool.poetry]
+name = "esprit-pids-4ds3-2026-aradhi-"
+version = "0.1.0"
+description = ""
+authors = ["Badisse02 <chebaane.badisse@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = ">=0.110.0"
+uvicorn = {version = ">=0.29.0", extras = ["standard"]}
+pydantic = ">=2.0.0"
+numpy = ">=1.26.0"
+pandas = ">=2.2.0"
+xgboost = ">=2.0.0"
+torch = ">=2.2.0"
+pillow = ">=10.0.0"
+transformers = ">=4.40.0"
+python-multipart = ">=0.0.9"
+torchvision = ">=0.17.0"
+tensorflow = "2.20.0"
+google-auth = "^2.52.0"
+pyjwt = "^2.12.1"
+cryptography = "^48.0.0"
+pydantic-settings = "^2.14.1"
+python-dotenv = "^1.2.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.1"
+flake8 = "^6.1.0"
+pre-commit = "^3.4.0"
+black = "^23.7.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
