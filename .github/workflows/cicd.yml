@@ -128,5 +128,4 @@ jobs:
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ env.SL_SH_GITHUB_SHA_SHORT }}
             ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=max
           push: true
