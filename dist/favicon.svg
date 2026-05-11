@@ -1,0 +1,21 @@
+^<svg
+xmlns=http://www.w3.org/2000/svg
+viewBox=0 0 200 150^>^<path
+d=M 20 130 L 75 20 L 105 80
+fill=none
+stroke=#c09c48
+stroke-width=20
+stroke-linejoin=miter
+stroke-linecap=square/^>^<path
+d=M 20 130 L 80 130 L 105 80
+fill=none
+stroke=#c09c48
+stroke-width=20
+stroke-linejoin=miter
+stroke-linecap=square/^>^<path
+d=M 105 80 L 125 40 L 180 130
+fill=none
+stroke=#ffffff
+stroke-width=20
+stroke-linejoin=miter
+stroke-linecap=square/^>^</svg^>
