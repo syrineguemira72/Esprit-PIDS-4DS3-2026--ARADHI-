@@ -29,11 +29,20 @@ ARADHI is an intelligent real estate platform that uses AI to predict property p
 - FAISS
 - Sentence-Transformers
 
+### Automation nad tests
+- Poetry
+- Flake8
+- pytest
+- Lint
+- Docker
+- Github Actions
+
 ### APIs & Deployment
 - Flask (API GPT-2 & RAG)
 - FastAPI (API principale)
 - Groq (LLM API)
 - Cloudflare Tunnel
+- Amazon Web Services AWS
 
 ## Architecture
 The project follows the TDSP (Team Data Science Process) methodology with modular DSOS:
@@ -63,21 +72,23 @@ git clone https://github.com/syrineguemira72/Esprit-PIDS-4DS3-2026--ARADHI-.git
 
 # Create and activate a virtual Env
 cd Esprit-PIDS-4DS3-2026--ARADHI-
-virtualenv venv
-venv\Scripts\activate
 
+⚠️⚠️⚠️ You have to install poetry before  ⚠️⚠️⚠️
 # Install Project Requirements
-pip install -r requirements.txt
+poetry install
+
+# Active l'environnement
+poetry shell
 
 # Run the frontend
-npm run dev
+poetry run npm run dev
 ```
 ### In another terminal
 
 ```bash
 # Run the frontend
 cd backend
-uvicorn app:app --reload --port 8000
+poetry run uvicorn app:app --reload --port 8000
 ```
 
 ⚠️ Make sure to create the ***"models"*** folder under the ***"immotn-backend"*** directory and upload the neccessary models.
